@@ -7,11 +7,13 @@ spring:
 
   cloud:
     gateway:
-      routes:
-        - id: test-route
-          uri: http://httpbin.org
-          predicates:
-            - Path=/test
+      server:
+        webflux:
+          routes:
+            - id: user-service
+              uri: lb://USER-SERVICE
+              predicates:
+                - Path=/api/users/**
 
 eureka:
   client:
