@@ -21,6 +21,11 @@ public class RestaurantService {
 		return repository.save(restaurant);
 
 	}
+	
+	public Restaurant getById(Long id) {
+	    return repository.findById(id)
+	            .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+	}
 
 	public List<Restaurant> getAll() {
 		return repository.findAll();
