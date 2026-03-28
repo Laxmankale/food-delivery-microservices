@@ -24,7 +24,39 @@ spring:
           predicates:
             - Path=/api/orders/**
 
+        # Swagger API docs routes
+        - id: user-service-docs
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user-service/v3/api-docs
+          filters:
+            - RewritePath=/user-service/(?<path>.*), /${path}
+
+        - id: restaurant-service-docs
+          uri: lb://RESTAURANT-SERVICE
+          predicates:
+            - Path=/restaurant-service/v3/api-docs
+          filters:
+            - RewritePath=/restaurant-service/(?<path>.*), /${path}
+
+        - id: order-service-docs
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/order-service/v3/api-docs
+          filters:
+            - RewritePath=/order-service/(?<path>.*), /${path}
+
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: User Service
+        url: /user-service/v3/api-docs
+      - name: Restaurant Service
+        url: /restaurant-service/v3/api-docs
+      - name: Order Service
+        url: /order-service/v3/api-docs
