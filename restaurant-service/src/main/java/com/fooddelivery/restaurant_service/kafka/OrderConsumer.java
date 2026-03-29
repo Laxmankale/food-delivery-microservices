@@ -17,6 +17,5 @@ public class OrderConsumer {
 		log.info("Received order event — orderId: {}, restaurantId: {}, userId: {}",
 				event.getOrderId(), event.getRestaurantId(), event.getUserId());
 
-		// TODO: Add business logic here (e.g., notify restaurant, update order queue)
 	}
 }
