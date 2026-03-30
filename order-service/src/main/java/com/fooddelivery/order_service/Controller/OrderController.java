@@ -3,10 +3,14 @@ package com.fooddelivery.order_service.Controller;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.fooddelivery.order_service.entity.Order;
 import com.fooddelivery.order_service.service.OrderService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -15,33 +19,33 @@ public class OrderController {
 	private final OrderService orderService;
 
 	public OrderController(OrderService orderService) {
-		super();
 		this.orderService = orderService;
 	}
 
 	@PostMapping
-	public Order create(@RequestBody Order order) {
-		return orderService.createOrder(order);
+	public ResponseEntity<Order> create(@Valid @RequestBody Order order) {
+		Order created = orderService.createOrder(order);
+		return ResponseEntity.status(HttpStatus.CREATED).body(created);
 	}
 
 	@GetMapping("/{id}")
-	public Order getById(@PathVariable Long id) {
-		return orderService.getOrderById(id);
+	public ResponseEntity<Order> getById(@PathVariable Long id) {
+		return ResponseEntity.ok(orderService.getOrderById(id));
 	}
 
 	@GetMapping
-	public List<Order> getAll() {
-		return orderService.getAllOrders();
+	public ResponseEntity<List<Order>> getAll() {
+		return ResponseEntity.ok(orderService.getAllOrders());
 	}
 
 	@PutMapping("/{id}/status")
-	public Order updateStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
-		return orderService.updateOrderStatus(id, body.get("status"));
+	public ResponseEntity<Order> updateStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
+		return ResponseEntity.ok(orderService.updateOrderStatus(id, body.get("status")));
 	}
 
 	@DeleteMapping("/{id}")
-	public String cancel(@PathVariable Long id) {
+	public ResponseEntity<Void> cancel(@PathVariable Long id) {
 		orderService.cancelOrder(id);
-		return "Order cancelled successfully";
+		return ResponseEntity.noContent().build();
 	}
 }

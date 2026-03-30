@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "orders")
@@ -14,8 +15,12 @@ public class Order {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@NotNull(message = "User ID is required")
 	private Long userId;
+
+	@NotNull(message = "Restaurant ID is required")
 	private Long restaurantId;
+
 	private String status;
 
 	public Long getId() {
