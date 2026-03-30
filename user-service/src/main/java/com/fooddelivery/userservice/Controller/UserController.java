@@ -2,10 +2,14 @@ package com.fooddelivery.userservice.Controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.fooddelivery.userservice.Service.UserService;
 import com.fooddelivery.userservice.entity.User;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/users")
@@ -14,33 +18,33 @@ public class UserController {
 	private final UserService service;
 
 	public UserController(UserService service) {
-		super();
 		this.service = service;
 	}
 
 	@PostMapping("/register")
-	public User registerUser(@RequestBody User user) {
-		return service.registerUser(user);
+	public ResponseEntity<User> registerUser(@Valid @RequestBody User user) {
+		User created = service.registerUser(user);
+		return ResponseEntity.status(HttpStatus.CREATED).body(created);
 	}
 
 	@GetMapping("/{id}")
-	public User getUserById(@PathVariable Long id) {
-		return service.getUserById(id);
+	public ResponseEntity<User> getUserById(@PathVariable Long id) {
+		return ResponseEntity.ok(service.getUserById(id));
 	}
 
 	@GetMapping
-	public List<User> getAllUsers() {
-		return service.getAllUsers();
+	public ResponseEntity<List<User>> getAllUsers() {
+		return ResponseEntity.ok(service.getAllUsers());
 	}
 
 	@PutMapping("/{id}")
-	public User updateUser(@PathVariable Long id, @RequestBody User user) {
-		return service.updateUser(id, user);
+	public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
+		return ResponseEntity.ok(service.updateUser(id, user));
 	}
 
 	@DeleteMapping("/{id}")
-	public String deleteUser(@PathVariable Long id) {
+	public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
 		service.deleteUser(id);
-		return "User deleted successfully";
+		return ResponseEntity.noContent().build();
 	}
 }
