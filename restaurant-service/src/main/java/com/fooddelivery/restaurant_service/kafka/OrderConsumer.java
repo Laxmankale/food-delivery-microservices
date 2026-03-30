@@ -14,8 +14,13 @@ public class OrderConsumer {
 
 	@KafkaListener(topics = "order-created", groupId = "restaurant-group")
 	public void handleOrderCreated(OrderCreatedEvent event) {
-		log.info("Received order event — orderId: {}, restaurantId: {}, userId: {}",
-				event.getOrderId(), event.getRestaurantId(), event.getUserId());
-
+		try {
+			log.info("Received order event — orderId: {}, restaurantId: {}, userId: {}",
+					event.getOrderId(), event.getRestaurantId(), event.getUserId());
+			// Process the order event here
+		} catch (Exception ex) {
+			log.error("Failed to process order event — orderId: {}, restaurantId: {}, error: {}",
+					event.getOrderId(), event.getRestaurantId(), ex.getMessage(), ex);
+		}
 	}
 }
