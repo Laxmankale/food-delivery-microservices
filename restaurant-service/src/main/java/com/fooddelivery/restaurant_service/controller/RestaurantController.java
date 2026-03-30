@@ -2,12 +2,7 @@ package com.fooddelivery.restaurant_service.controller;
 
 import java.util.List;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.fooddelivery.restaurant_service.entity.Restaurant;
 import com.fooddelivery.restaurant_service.service.RestaurantService;
@@ -27,6 +22,7 @@ public class RestaurantController {
 	public Restaurant getById(@PathVariable Long id) {
 	    return service.getById(id);
 	}
+
 	@PostMapping
 	public Restaurant create(@RequestBody Restaurant restaurant) {
 		return service.save(restaurant);
@@ -35,5 +31,16 @@ public class RestaurantController {
 	@GetMapping
 	public List<Restaurant> getAll() {
 		return service.getAll();
+	}
+
+	@PutMapping("/{id}")
+	public Restaurant update(@PathVariable Long id, @RequestBody Restaurant restaurant) {
+		return service.updateRestaurant(id, restaurant);
+	}
+
+	@DeleteMapping("/{id}")
+	public String delete(@PathVariable Long id) {
+		service.deleteRestaurant(id);
+		return "Restaurant deleted successfully";
 	}
 }

@@ -1,0 +1,236 @@
+﻿diff --git a/order-service/src/main/java/com/fooddelivery/order_service/Controller/OrderController.java b/order-service/src/main/java/com/fooddelivery/order_service/Controller/OrderController.java
+index e5e05ab..204de13 100644
+--- a/order-service/src/main/java/com/fooddelivery/order_service/Controller/OrderController.java
++++ b/order-service/src/main/java/com/fooddelivery/order_service/Controller/OrderController.java
+@@ -1,5 +1,8 @@
+ package com.fooddelivery.order_service.Controller;
+ 
++import java.util.List;
++import java.util.Map;
++
+ import org.springframework.web.bind.annotation.*;
+ 
+ import com.fooddelivery.order_service.entity.Order;
+@@ -16,12 +19,29 @@ public class OrderController {
+ 		this.orderService = orderService;
+ 	}
+ 
+-    @GetMapping("/test")
+-    public String test() {
+-        return "Order Service OK";
+-    }
+ 	@PostMapping
+ 	public Order create(@RequestBody Order order) {
+ 		return orderService.createOrder(order);
+ 	}
++
++	@GetMapping("/{id}")
++	public Order getById(@PathVariable Long id) {
++		return orderService.getOrderById(id);
++	}
++
++	@GetMapping
++	public List<Order> getAll() {
++		return orderService.getAllOrders();
++	}
++
++	@PutMapping("/{id}/status")
++	public Order updateStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
++		return orderService.updateOrderStatus(id, body.get("status"));
++	}
++
++	@DeleteMapping("/{id}")
++	public String cancel(@PathVariable Long id) {
++		orderService.cancelOrder(id);
++		return "Order cancelled successfully";
++	}
+ }
+diff --git a/order-service/src/main/java/com/fooddelivery/order_service/service/OrderService.java b/order-service/src/main/java/com/fooddelivery/order_service/service/OrderService.java
+index 0b4f71b..fdad92b 100644
+--- a/order-service/src/main/java/com/fooddelivery/order_service/service/OrderService.java
++++ b/order-service/src/main/java/com/fooddelivery/order_service/service/OrderService.java
+@@ -1,5 +1,7 @@
+ package com.fooddelivery.order_service.service;
+ 
++import java.util.List;
++
+ import org.springframework.stereotype.Service;
+ 
+ import com.fooddelivery.order_service.client.RestaurantClient;
+@@ -30,4 +32,27 @@ public class OrderService {
+ 		producer.sendOrderCreatedEvent(event);
+ 		return saved;
+ 	}
++
++	public Order getOrderById(Long id) {
++		return orderRepository.findById(id)
++				.orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
++	}
++
++	public List<Order> getAllOrders() {
++		return orderRepository.findAll();
++	}
++
++	public Order updateOrderStatus(Long id, String status) {
++		Order order = orderRepository.findById(id)
++				.orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
++		order.setStatus(status);
++		return orderRepository.save(order);
++	}
++
++	public void cancelOrder(Long id) {
++		Order order = orderRepository.findById(id)
++				.orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
++		order.setStatus("CANCELLED");
++		orderRepository.save(order);
++	}
+ }
+diff --git a/restaurant-service/src/main/java/com/fooddelivery/restaurant_service/controller/RestaurantController.java b/restaurant-service/src/main/java/com/fooddelivery/restaurant_service/controller/RestaurantController.java
+index 4dd701a..0b77f9e 100644
+--- a/restaurant-service/src/main/java/com/fooddelivery/restaurant_service/controller/RestaurantController.java
++++ b/restaurant-service/src/main/java/com/fooddelivery/restaurant_service/controller/RestaurantController.java
+@@ -2,12 +2,7 @@ package com.fooddelivery.restaurant_service.controller;
+ 
+ import java.util.List;
+ 
+-import org.springframework.web.bind.annotation.GetMapping;
+-import org.springframework.web.bind.annotation.PathVariable;
+-import org.springframework.web.bind.annotation.PostMapping;
+-import org.springframework.web.bind.annotation.RequestBody;
+-import org.springframework.web.bind.annotation.RequestMapping;
+-import org.springframework.web.bind.annotation.RestController;
++import org.springframework.web.bind.annotation.*;
+ 
+ import com.fooddelivery.restaurant_service.entity.Restaurant;
+ import com.fooddelivery.restaurant_service.service.RestaurantService;
+@@ -27,6 +22,7 @@ public class RestaurantController {
+ 	public Restaurant getById(@PathVariable Long id) {
+ 	    return service.getById(id);
+ 	}
++
+ 	@PostMapping
+ 	public Restaurant create(@RequestBody Restaurant restaurant) {
+ 		return service.save(restaurant);
+@@ -36,4 +32,15 @@ public class RestaurantController {
+ 	public List<Restaurant> getAll() {
+ 		return service.getAll();
+ 	}
++
++	@PutMapping("/{id}")
++	public Restaurant update(@PathVariable Long id, @RequestBody Restaurant restaurant) {
++		return service.updateRestaurant(id, restaurant);
++	}
++
++	@DeleteMapping("/{id}")
++	public String delete(@PathVariable Long id) {
++		service.deleteRestaurant(id);
++		return "Restaurant deleted successfully";
++	}
+ }
+diff --git a/restaurant-service/src/main/java/com/fooddelivery/restaurant_service/service/RestaurantService.java b/restaurant-service/src/main/java/com/fooddelivery/restaurant_service/service/RestaurantService.java
+index 583f13f..4f4b6a6 100644
+--- a/restaurant-service/src/main/java/com/fooddelivery/restaurant_service/service/RestaurantService.java
++++ b/restaurant-service/src/main/java/com/fooddelivery/restaurant_service/service/RestaurantService.java
+@@ -30,4 +30,18 @@ public class RestaurantService {
+ 	public List<Restaurant> getAll() {
+ 		return repository.findAll();
+ 	}
++
++	public Restaurant updateRestaurant(Long id, Restaurant restaurantDetails) {
++		Restaurant restaurant = repository.findById(id)
++				.orElseThrow(() -> new RuntimeException("Restaurant not found with id: " + id));
++		restaurant.setName(restaurantDetails.getName());
++		restaurant.setLocation(restaurantDetails.getLocation());
++		return repository.save(restaurant);
++	}
++
++	public void deleteRestaurant(Long id) {
++		Restaurant restaurant = repository.findById(id)
++				.orElseThrow(() -> new RuntimeException("Restaurant not found with id: " + id));
++		repository.delete(restaurant);
++	}
+ }
+diff --git a/user-service/src/main/java/com/fooddelivery/userservice/Controller/UserController.java b/user-service/src/main/java/com/fooddelivery/userservice/Controller/UserController.java
+index 5fe0f2b..8408e6c 100644
+--- a/user-service/src/main/java/com/fooddelivery/userservice/Controller/UserController.java
++++ b/user-service/src/main/java/com/fooddelivery/userservice/Controller/UserController.java
+@@ -1,9 +1,8 @@
+ package com.fooddelivery.userservice.Controller;
+ 
+-import org.springframework.web.bind.annotation.PostMapping;
+-import org.springframework.web.bind.annotation.RequestBody;
+-import org.springframework.web.bind.annotation.RequestMapping;
+-import org.springframework.web.bind.annotation.RestController;
++import java.util.List;
++
++import org.springframework.web.bind.annotation.*;
+ 
+ import com.fooddelivery.userservice.Service.UserService;
+ import com.fooddelivery.userservice.entity.User;
+@@ -23,4 +22,25 @@ public class UserController {
+ 	public User registerUser(@RequestBody User user) {
+ 		return service.registerUser(user);
+ 	}
++
++	@GetMapping("/{id}")
++	public User getUserById(@PathVariable Long id) {
++		return service.getUserById(id);
++	}
++
++	@GetMapping
++	public List<User> getAllUsers() {
++		return service.getAllUsers();
++	}
++
++	@PutMapping("/{id}")
++	public User updateUser(@PathVariable Long id, @RequestBody User user) {
++		return service.updateUser(id, user);
++	}
++
++	@DeleteMapping("/{id}")
++	public String deleteUser(@PathVariable Long id) {
++		service.deleteUser(id);
++		return "User deleted successfully";
++	}
+ }
+diff --git a/user-service/src/main/java/com/fooddelivery/userservice/Service/UserService.java b/user-service/src/main/java/com/fooddelivery/userservice/Service/UserService.java
+index a52109e..4d5f24e 100644
+--- a/user-service/src/main/java/com/fooddelivery/userservice/Service/UserService.java
++++ b/user-service/src/main/java/com/fooddelivery/userservice/Service/UserService.java
+@@ -1,5 +1,7 @@
+ package com.fooddelivery.userservice.Service;
+ 
++import java.util.List;
++
+ import org.springframework.stereotype.Service;
+ 
+ import com.fooddelivery.userservice.Repository.UserRepository;
+@@ -18,4 +20,28 @@ public class UserService {
+ 	public User registerUser(User user) {
+ 		return repository.save(user);
+ 	}
++
++	public User getUserById(Long id) {
++		return repository.findById(id)
++				.orElseThrow(() -> new RuntimeException("User not found with id: " + id));
++	}
++
++	public List<User> getAllUsers() {
++		return repository.findAll();
++	}
++
++	public User updateUser(Long id, User userDetails) {
++		User user = repository.findById(id)
++				.orElseThrow(() -> new RuntimeException("User not found with id: " + id));
++		user.setName(userDetails.getName());
++		user.setEmail(userDetails.getEmail());
++		user.setPassword(userDetails.getPassword());
++		return repository.save(user);
++	}
++
++	public void deleteUser(Long id) {
++		User user = repository.findById(id)
++				.orElseThrow(() -> new RuntimeException("User not found with id: " + id));
++		repository.delete(user);
++	}
+ }

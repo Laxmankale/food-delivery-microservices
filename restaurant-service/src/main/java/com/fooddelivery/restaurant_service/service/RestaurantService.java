@@ -30,4 +30,18 @@ public class RestaurantService {
 	public List<Restaurant> getAll() {
 		return repository.findAll();
 	}
+
+	public Restaurant updateRestaurant(Long id, Restaurant restaurantDetails) {
+		Restaurant restaurant = repository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Restaurant not found with id: " + id));
+		restaurant.setName(restaurantDetails.getName());
+		restaurant.setLocation(restaurantDetails.getLocation());
+		return repository.save(restaurant);
+	}
+
+	public void deleteRestaurant(Long id) {
+		Restaurant restaurant = repository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Restaurant not found with id: " + id));
+		repository.delete(restaurant);
+	}
 }

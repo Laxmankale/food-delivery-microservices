@@ -1,0 +1,47 @@
+﻿diff --git a/order-service/src/main/java/com/fooddelivery/order_service/Controller/OrderController.java b/order-service/src/main/java/com/fooddelivery/order_service/Controller/OrderController.java
+index e5e05ab..204de13 100644
+--- a/order-service/src/main/java/com/fooddelivery/order_service/Controller/OrderController.java
++++ b/order-service/src/main/java/com/fooddelivery/order_service/Controller/OrderController.java
+@@ -1,5 +1,8 @@
+ package com.fooddelivery.order_service.Controller;
+ 
++import java.util.List;
++import java.util.Map;
++
+ import org.springframework.web.bind.annotation.*;
+ 
+ import com.fooddelivery.order_service.entity.Order;
+@@ -16,12 +19,29 @@ public class OrderController {
+ 		this.orderService = orderService;
+ 	}
+ 
+-    @GetMapping("/test")
+-    public String test() {
+-        return "Order Service OK";
+-    }
+ 	@PostMapping
+ 	public Order create(@RequestBody Order order) {
+ 		return orderService.createOrder(order);
+ 	}
++
++	@GetMapping("/{id}")
++	public Order getById(@PathVariable Long id) {
++		return orderService.getOrderById(id);
++	}
++
++	@GetMapping
++	public List<Order> getAll() {
++		return orderService.getAllOrders();
++	}
++
++	@PutMapping("/{id}/status")
++	public Order updateStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
++		return orderService.updateOrderStatus(id, body.get("status"));
++	}
++
++	@DeleteMapping("/{id}")
++	public String cancel(@PathVariable Long id) {
++		orderService.cancelOrder(id);
++		return "Order cancelled successfully";
++	}
+ }

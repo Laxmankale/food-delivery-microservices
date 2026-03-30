@@ -1,5 +1,7 @@
 package com.fooddelivery.order_service.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.fooddelivery.order_service.client.RestaurantClient;
@@ -29,5 +31,28 @@ public class OrderService {
 		OrderCreatedEvent event = new OrderCreatedEvent(saved.getId(), saved.getUserId(), saved.getRestaurantId());
 		producer.sendOrderCreatedEvent(event);
 		return saved;
+	}
+
+	public Order getOrderById(Long id) {
+		return orderRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+	}
+
+	public List<Order> getAllOrders() {
+		return orderRepository.findAll();
+	}
+
+	public Order updateOrderStatus(Long id, String status) {
+		Order order = orderRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+		order.setStatus(status);
+		return orderRepository.save(order);
+	}
+
+	public void cancelOrder(Long id) {
+		Order order = orderRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+		order.setStatus("CANCELLED");
+		orderRepository.save(order);
 	}
 }
